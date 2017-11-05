@@ -1,11 +1,46 @@
+/////////////////////////////////////////////////////////////////////////////
+// Semester:         CS367 Fall 2017 
+// PROJECT:          p3
+// FILE:             MedianStream.java
+//
+// TEAM:    N/A
+// Authors: Manuel Takeshi Gomez
+// Author1: N/A
+// Author2: N/A
+//
+// ---------------- OTHER ASSISTANCE CREDITS 
+// Persons: Mikayla Buford. mbuford@wisc.edu. Helped me debug part of this
+//	class that wasn't producing correct output for sample run 2. A simple
+//	relocation of the decrementing of numItems in the MaxPQ/MinPQ classes
+//	was the solution.
+// 
+// Online sources: https://stackoverflow.com/questions/941272/how-do-i-trim-a
+// -file-extension-from-a-string-in-java
+//    This information from StackOverflow helped me rename the output file when
+//    I had to write the median values to "filename_out.txt".
+//////////////////////////// 80 columns wide //////////////////////////////////
+
 import java.io.File;
-
-
-
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+/**
+ * 
+ * MedianStream calculates the median temperatures from either a set of files, which hold various numeric (Double) 
+ * values that represent the temperatures, or from a user command-prompt (if no file input is given). 
+ * 
+ * <p>For findMedianForFile mode, the program will read the temperatures read so far from an input file, find the 
+ * median temperature for those given temperatures compared to previous ones, and write the output to a line of an
+ * output file.</p>
+ * 
+ * <p>For runInteractiveMode, the temperatures are interpreted by the user entering only numeric values from the 
+ * command-prompt. For each new temperature, a new median is calculated. </p>
+ * 
+ * <p>Bugs: N/A</p>
+ *
+ * @author Manuel Takeshi Gomez
+ */
 public class MedianStream
 {
 
@@ -31,8 +66,7 @@ public class MedianStream
      *  Initialize the currentMedian = 0.0
      *  Create a new MaxPQ and MinPQ.
      */
-    public MedianStream()
-    {
+    public MedianStream() {
         this.currentMedian = 0.0;
         this.maxHeap = new MaxPQ<Double>();
         this.minHeap = new MinPQ<Double>();
@@ -113,9 +147,8 @@ public class MedianStream
     	try {
     		inputFile = new File(filename);
     		fileIn = new Scanner(inputFile);
-    		filename = filename.substring(0, filename.lastIndexOf('.')); //TODO
-    		System.out.println(filename);
-    		writer = new PrintWriter(filename + "_out.txt"); //Creating an output file with a custom name.
+    		filename = filename.substring(0, filename.lastIndexOf('.')); //Removes the .txt extension from filename.
+    		writer = new PrintWriter(filename + "_out.txt");        //Creating an output file with filename_out.txt.
     		
     		while (fileIn.hasNextDouble()) { //While there are still Doubles to be read from the file, keep processing.
     			Double dataFromFile = fileIn.nextDouble(); 			//Get a double from the file.
@@ -124,7 +157,7 @@ public class MedianStream
     		}			
     	} catch(FileNotFoundException e) {
     		System.out.println(filename + FNF_MESSAGE);
-    	} finally {
+    	} finally {		//Closing both PrintWriter and Scanner objects are crucial for producing an output file.
     		writer.close();
     		fileIn.close();
     	}
@@ -181,7 +214,7 @@ public class MedianStream
     			currentMedian = (maxHeap.getMax() + minHeap.getMax()) / 2d; 
     		}
     	}
-    	return currentMedian; //Return the new currentMedian after user inputs a new value to either set/PQ.
+    	return currentMedian;
     }
 
     // DO NOT EDIT THE main METHOD.
@@ -203,10 +236,8 @@ public class MedianStream
         // Stop reading the file at the moment a non-double value is detected.
         else
         {
-        	System.out.println("boner?");
             for ( int i=0 ; i < args.length ; i++ )
             {
-            	System.out.println("dianna chain tea");
                 findMedianForFile(args[i]);
             }
         }

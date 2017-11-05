@@ -1,13 +1,28 @@
-/**
- * GENERAL DIRECTIONS -
- *
- * 1. You may add private data fields and private methods as you see fit.
- * 2. Implement ALL the methods defined in the PriorityQueueADT interface.
- * 3. DO NOT change the name of the methods defined in the PriorityQueueADT interface.
- * 4. DO NOT edit the PriorityQueueADT interface.
- * 5. DO NOT implement a shadow array.
- */
+/////////////////////////////////////////////////////////////////////////////
+// Semester:         CS367 Fall 2017 
+// PROJECT:          p3
+// FILE:             MaxPQ.java
+//
+// TEAM:    N/A
+// Authors: Manuel Takeshi Gomez
+// Author1: N/A
+// Author2: N/A
+//
+// ---------------- OTHER ASSISTANCE CREDITS 
+// Persons: N/A
+// 
+// Online sources: N/A
+//////////////////////////// 80 columns wide //////////////////////////////////
 
+
+/**
+ * A priority queue, implemented with a heap, that has the highest priority item
+ * (the root of the tree), as the maximum value of all of the nodes.
+ *
+ * <p>Bugs: N/A
+ *
+ * @author Manuel Takeshi Gomez
+ */
 public class MaxPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 {
     private E[] items;							//The internal data structure to our heap is an array of objects.
@@ -89,16 +104,7 @@ public class MaxPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 		}
 		numItems++;
 	}
-    
-    //TODO DELETE BEFORE SUBMISSION!!!
-    public void print() {
-    	System.out.println("From print()");
-    	for (int i = 1; i < numItems+1; i++) {
-    		System.out.println(items[i]);
-    	}
-    	System.out.println("End of print()");
-    }
-    
+     
     /**
      * @return true iff there are no items in the MaxPQ heap.
      */
