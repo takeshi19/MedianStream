@@ -1,6 +1,7 @@
 import java.io.File;
 
 
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Scanner;
@@ -20,9 +21,9 @@ public class MedianStream
      */
     private static final String DOUBLE_FORMAT = "%8.3f\n";
 
-    private Double currentMedian;
-    private MaxPQ<Double> maxHeap;
-    private MinPQ<Double> minHeap;
+    private Double currentMedian;  //The current version of the median value out of the two sets of data below.
+    private MaxPQ<Double> maxHeap; //Data set 1: the heap that contains the largest value computed. 
+    private MinPQ<Double> minHeap; //Data set 2: the heap that contains the smallest value computed.
 
     /**
      * Override Default Constructor
@@ -55,18 +56,18 @@ public class MedianStream
      * the beginning of the method execution is part of the same stream.
      */
     private static void runInteractiveMode() {	
-		MedianStream findMedian = new MedianStream(); //Instance of this class to call on findMedian() to do math.
-		Scanner scnr = new Scanner(System.in);
+		MedianStream findMedian = new MedianStream(); 
+		Scanner scnr = new Scanner(System.in); //Scanner for reading in keyboard-input.
 		boolean keepAsking = true;	//Boolean value to maintain the infinite loop of asking user for double input.
 		
 		while (keepAsking == true) {
 			System.out.print(PROMPT_NEXT_VALUE);
 			String input = scnr.nextLine().trim();	//We initially get string input just in case user enters "q" first.
 			
-			if (input.equalsIgnoreCase("q")) { 		//"q" input means quit the interactive mode version of the program.
+			if (input.trim().equals("q")) { 		//"q" input means quit the interactive mode version of the program.
 				keepAsking = false;
 			}
-			else {
+			else if (input.matches(".*\\d+.*")) {
 				try {
 					Double doubleIn = Double.parseDouble(input); 
 					Double currMedian = findMedian.getMedian(doubleIn); //Calculates median whenever user inputs double.
@@ -75,6 +76,10 @@ public class MedianStream
 				}catch(NumberFormatException num) {
 					keepAsking = false;
 				}
+			}
+			else { //User has not entered a double or a "q", notify invalid input.
+				System.out.println(EXIT_MESSAGE);
+				keepAsking = false;
 			}
 		}
 		if (scnr != null) { //Close scanner when the loop breaks and we are done with program in interactive mode.
@@ -99,9 +104,30 @@ public class MedianStream
      * If a FileNotFoundException occurs, just print the string FNF_MESSAGE
      * as declared and initialized with the data members above.
      */
-    private static void findMedianForFile(String filename)
-    {
+    private static void findMedianForFile(String filename) {
+		MedianStream findMedian = new MedianStream(); 
+    	Scanner fileIn = null;     //Scanner to scan through data of inputFile.
+    	File inputFile = null;	   //The input file that holds the various temperatures (doubles). 
+    	PrintWriter writer = null; //Enables the writing of data from inputFile to an output file.
 
+    	try {
+    		inputFile = new File(filename);
+    		fileIn = new Scanner(inputFile);
+    		filename = filename.substring(0, filename.lastIndexOf('.')); //TODO
+    		System.out.println(filename);
+    		writer = new PrintWriter(filename + "_out.txt"); //Creating an output file with a custom name.
+    		
+    		while (fileIn.hasNextDouble()) { //While there are still Doubles to be read from the file, keep processing.
+    			Double dataFromFile = fileIn.nextDouble(); 			//Get a double from the file.
+    			Double median = findMedian.getMedian(dataFromFile); //Update median based on the data from this input.
+				writer.printf(DOUBLE_FORMAT, median);				//Write the medians to each line of the output file. 
+    		}			
+    	} catch(FileNotFoundException e) {
+    		System.out.println(filename + FNF_MESSAGE);
+    	} finally {
+    		writer.close();
+    		fileIn.close();
+    	}
     }
 
     /**
@@ -115,41 +141,47 @@ public class MedianStream
      * @return the updated median.
      */
     private Double getMedian(Double newReading){
-    	Double newMedian = 0d; //The new median value calculated from calling this method.
+    	Double rootFromMin = 0d; //Value of removing root from the minPQ to add to the maxPQ heap.
+    	Double rootFromMax = 0d; //Value of removing root from the maxPQ to add to the minPQ heap.
     	
-    	if (newReading > currentMedian) { 		//Insert newReading as an item in minHeap if it's > currentMedian. 
+    	if (newReading > currentMedian) { 			//Insert newReading as an item in minHeap if it's > currentMedian. 
     		if (minHeap.size() == maxHeap.size()) {  
     			minHeap.insert(newReading);		//If min/maxPQ equivalent in size, still insert newReading in minHeap.
-    			newMedian = minHeap.getMax();   //Get updated root after insertion into minPQ. 
+    			currentMedian = minHeap.getMax();   					//Get updated root after insertion into minPQ. 
     		}
     		else if (minHeap.size() == maxHeap.size() - 1) {
-    			minHeap.insert(newReading); //Inserting into minHeap makes minHeap size and maxHeap size equivalent.
-    			newMedian = (minHeap.getMax() + maxHeap.getMax()) / 2; //Calculate average of 2 heaps for newMedian.
+    			minHeap.insert(newReading); 	//Inserting into minHeap makes minHeap size and maxHeap size equivalent.
+    			currentMedian = (minHeap.getMax() + maxHeap.getMax()) / 2d; //Calculate average of 2 heaps for newMedian.
     		}
-    		else if (minHeap.size() == maxHeap.size() + 1){ //FIXME comments
-    			Double fromMin = minHeap.removeMax();
-    			maxHeap.insert(fromMin);
+    		/*
+    		 * If minHeap size < maxHeap size, then find the average of the two roots after insertion of newReading 
+    		 * value. Similar concept to finding the average of two sets by taking the Nth largest value from one set
+    		 * and adding it to the Nth smallest value from the other set and diving by two (for a total of N*2 items).
+    		 */
+    		else if (minHeap.size() == maxHeap.size() + 1){ //If minHeap size < maxHeap size 
+    			rootFromMin = minHeap.removeMax();
+    			maxHeap.insert(rootFromMin);
     			minHeap.insert(newReading);
-    			newMedian = (minHeap.getMax() + maxHeap.getMax()) / 2; 
+    			currentMedian = (minHeap.getMax() + maxHeap.getMax()) / 2d; 
     		}
     	}
-    	else {  								//Insert newReading as an item in maxHeap if it's < currentMedian.
-    		if (minHeap.size() == maxHeap.size()) {  
+    	else if (newReading < currentMedian) {  	//Insert newReading as an item in maxHeap if it's < currentMedian.
+    		if (maxHeap.size() == minHeap.size()) {  
     			maxHeap.insert(newReading);		//If min/maxPQ equivalent in size, still insert newReading in maxHeap.
-    			newMedian = maxHeap.getMax();   //Get updated root after insertion into maxHeap. 
+    			currentMedian = maxHeap.getMax();   				  //Get updated root after insertion into maxHeap.
     		}
     		else if (maxHeap.size() == minHeap.size() - 1) {
-    			maxHeap.insert(newReading); //Inserting into maxHeap makes minHeap size and minHeap size equivalent.
-    			newMedian = (maxHeap.getMax() + minHeap.getMax()) / 2; //Calculate average of 2 heaps for newMedian.
+    			maxHeap.insert(newReading);   //Inserting into maxHeap makes minHeap size and minHeap size equivalent.
+    			currentMedian = (maxHeap.getMax() + minHeap.getMax()) / 2d; //Calculate average of 2 heaps for median.
     		}
-    		else if (maxHeap.size() == minHeap.size() + 1){ //FIXME comments
-    			Double fromMin = maxHeap.removeMax();
-    			minHeap.insert(fromMin);
+    		else if (maxHeap.size() == minHeap.size() + 1){ 
+    			rootFromMax = maxHeap.removeMax(); 				
+    			minHeap.insert(rootFromMax);
     			maxHeap.insert(newReading);
-    			newMedian = (maxHeap.getMax() + minHeap.getMax()) / 2; 
+    			currentMedian = (maxHeap.getMax() + minHeap.getMax()) / 2d; 
     		}
     	}
-    	return newMedian;
+    	return currentMedian; //Return the new currentMedian after user inputs a new value to either set/PQ.
     }
 
     // DO NOT EDIT THE main METHOD.
@@ -161,7 +193,6 @@ public class MedianStream
         // After each iteration of the loop, update and display the new median.
         if ( args.length == 0 )
         {
-        	System.out.println("in main()");
             runInteractiveMode();
         }
 
@@ -172,8 +203,10 @@ public class MedianStream
         // Stop reading the file at the moment a non-double value is detected.
         else
         {
+        	System.out.println("boner?");
             for ( int i=0 ; i < args.length ; i++ )
             {
+            	System.out.println("dianna chain tea");
                 findMedianForFile(args[i]);
             }
         }

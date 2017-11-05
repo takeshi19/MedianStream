@@ -10,16 +10,19 @@
 
 public class MaxPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 {
-    private E[] items;
-    private static final int INITIAL_SIZE = 10; 
-    private int numItems;
+    private E[] items;							//The internal data structure to our heap is an array of objects.
+    private static final int INITIAL_SIZE = 10; //The initial size of our heap is 10 items.
+    private int numItems;						//The actual amount of items in the internal data structure. 
    
-    public MaxPQ()
-    {
+    public MaxPQ() {
         this.items = (E[]) new Comparable[INITIAL_SIZE];
         numItems = 0;
     }
     
+    /**
+     * Private helper method for expanding the array when someone tries inserting an item to the MaxPQ heap and it's 
+     * full, meaning all array positions are taken by the max amount of items.
+     */
     private void expandItemsArray() {
 		E[] expandedArray = (E[]) new Comparable[items.length * 2]; //Double the size of original array. 
 		
@@ -97,23 +100,34 @@ public class MaxPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
     }
     
     /**
-     * 
+     * @return true iff there are no items in the MaxPQ heap.
      */
 	@Override
 	public boolean isEmpty() {
 		return numItems == 0;
 	}
 	
+	/**
+	 * @throws EmptyQueueException if we try removing from an empty MaxPQ.
+	 * @return the highest priority node from the MaxPQ.
+	 */
 	@Override
 	public E getMax() throws EmptyQueueException {
 		if (isEmpty()) {
 			throw new EmptyQueueException();
+		}else {
+			return items[1]; //The root contains the max value.
 		}
-		return items[1]; //The root contains the max value.
 	}
 	
 	/**
-	 *
+	 * Removes the maximum value from the MaxPQ. In this case it would be the root value that holds the largest node.
+	 * After removal, replace root with the node from the last available position in the heap. If it's necessary to
+	 * swap children with root, being that the root is less than any of the children in the node, then heap is reordered
+	 * in a descending fashion until order is established.
+	 * 
+	 * @return the highest priority node/root that was just removed.
+	 * @throws EmptyQueueException if removal tries to occur from an empty MaxPQ.
 	 */
 	@Override
 	public E removeMax() throws EmptyQueueException {
@@ -121,24 +135,23 @@ public class MaxPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 			throw new EmptyQueueException();
 		}
 		
-		E saveRm = null;		//The value returned from the root we just removed.
-		boolean order = false;	//Indicates whether or not the heap order has been established. 
-		int leftChildIdx = 0; 	//Index of the child that is to the left of the parent.
-		int rightChildIdx = 0;	//Index of the child that is to the right of the parent.
+		E saveRm = null;			//The value returned from the root we just removed.
+		boolean order = false;		//Indicates whether or not the heap order has been established. 
+		int leftChildIdx = 0; 		//Index of the child that is to the left of the parent.
+		int rightChildIdx = 0;		//Index of the child that is to the right of the parent.
 		int compLeftToParent = 0;  	//Value used to compare the left child and the parent.
 		int compRightToParent = 0; 	//Value used to compare the right Child and the parent.
 		int compLeftToRight = 0;   	//Compares the leftChild to the rightChild to see which has greater value.
 		
 		saveRm = items[1];		    //Have to save and then return the root we are removing.
 		items[1] = items[numItems]; //Replacing root with value at end of array.
-		numItems--; 			    //Removing item we swapped into the root
 				
 		int rootIdx = 1; 	  	//Moving down heap from rootIdx, to restore order after removing the max value.
 		while (order == false) {  
 			leftChildIdx = rootIdx * 2;         //The leftwards child of the parent is always at an even index.
 			rightChildIdx =  leftChildIdx + 1;  //The rightwards child of the parent is always at an odd index.
 
-			if (leftChildIdx > numItems || rightChildIdx > numItems){
+			if (leftChildIdx > numItems || rightChildIdx > numItems){ //Avoids null items being swapped with parent.
 				break;
 			} 
 			
@@ -167,11 +180,12 @@ public class MaxPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 		  		order = true;
 		  	}
 		}
+		numItems--; //Removing item we swapped into the root
 		return saveRm;
 	}
 	
 	/**
-	 * 
+	 * @return the amount of nodes in the heap of the MaxPQ.
 	 */
 	@Override
 	public int size() {

@@ -10,17 +10,18 @@
 
 public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 {
-	//TODO ADD METHOD HEADERS THAT ARE PRECISE!
-    private E[] items;
-    private static final int INITIAL_SIZE = 10;
-    private int numItems;
+    private E[] items; 							//The internal data structure to our heap is an array of objects.
+    private static final int INITIAL_SIZE = 10; //The initial size of our heap is 10 items.
+    private int numItems;						//The actual amount of items in the internal data structure.
 
-    public MinPQ()
-    {
+    public MinPQ() {
         this.items = (E[]) new Comparable[INITIAL_SIZE];
         numItems = 0;
     }
 
+    /**
+     * @return true iff there are no items in the MinPQ heap.
+     */
 	@Override
 	public boolean isEmpty() {
 		return numItems == 0;
@@ -35,6 +36,10 @@ public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
     	System.out.println("End of print()");
     }
     
+    /**
+     * Private helper method for expanding the array when someone tries inserting an item to the MinPQ heap and it's 
+     * full, meaning all array positions are taken by the max amount of items.
+     */
     private void expandItemsArray() {
 		E[] expandedArray = (E[]) new Comparable[items.length * 2]; //Double the size of original array. 
 		
@@ -44,10 +49,18 @@ public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 		items = expandedArray;				    //Reassign items to point to bigger and filled-in array.
 	}
     
-	/**
-	 * Insert the item to the next available location, then restructure the heap so that it has proper order 
-	 * (minimum is at root, and all children have values <= root).
-	 */
+    /**
+     * Adds a data item to the priority queue.
+     * Reorders all the other data items in the
+     * queue accordingly.
+     *
+     * If the size is equal to the capacity of the
+     * priority queue, double the capacity and then
+     * add the new item.
+     *
+     * @param item the item to add
+     * @throws IllegalArgumentException if item is null
+     */
 	@Override
 	public void insert(E item) {
    		if (item == null) {
@@ -93,17 +106,11 @@ public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 		}
 		numItems++;
 	}
-
 	
-	 /**
-     * Returns the highest priority item in the priority queue.
-     *
-     * MinPriorityQueue => it will return the smallest valued element.
-     * MaxPriorityQueue => it will return the largest valued element.
-     *
-     * @return the highest priority item in the priority queue.
-     * @throws EmptyQueueException if priority queue is empty.
-     */
+	/**
+	 * @throws EmptyQueueException if we try returning a root from an empty MinPQ.
+	 * @return the highest priority node/root from the heap of MinPQ.
+	 */
 	@Override
 	public E getMax() throws EmptyQueueException {
 		if (numItems == 0) {
@@ -113,16 +120,14 @@ public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 	}
 	
 	/**
-     * Returns and removes the highest priority item in the priority queue.
-     * Reorders all the other data items in the
-     * queue accordingly.
-     *
-     * MinPriorityQueue => it will return and remove the smallest valued element.
-     * MaxPriorityQueue => it will return and remove the largest valued element.
-     *
-     * @return the highest priority item in the priority queue.
-     * @throws EmptyQueueException if priority queue is empty.
-     */
+	 * Removes the maximum value from the MinPQ. In this case it would be the root value that holds the smallest node.
+	 * After removal, replace root with the node from the last available position in the heap. If it's necessary to
+	 * swap children with root, being that the root is greater than any of the children in the node, then heap is 
+	 * reordered in a descending fashion until order is established.
+	 * 
+	 * @return the highest priority node/root that was just removed.
+	 * @throws EmptyQueueException if removal tries to occur from an empty MaxPQ.
+	 */
 	@Override
 	public E removeMax() throws EmptyQueueException {
 		if (isEmpty()) {
@@ -139,14 +144,13 @@ public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 		
 		saveRm = items[1];		    //Have to save and then return the root we are removing.
 		items[1] = items[numItems]; //Replacing root with value at end of array.
-		numItems--; 			    //Removing item we swapped into the root
 				
 		int rootIdx = 1; 	  	//Moving down heap from rootIdx, to restore order after removing the min value.
 		while (order == false) {  
 			leftChildIdx = rootIdx * 2;         //The leftwards child of the parent is always at an even index.
 			rightChildIdx =  leftChildIdx + 1;  //The rightwards child of the parent is always at an odd index.
 
-			if (leftChildIdx > numItems || rightChildIdx > numItems){
+			if (leftChildIdx > numItems || rightChildIdx > numItems){ //Avoids null items being swapped with parent.
 				break;
 			} 
 			
@@ -171,13 +175,17 @@ public class MinPQ<E extends Comparable<E>> implements PriorityQueueADT<E>
 		  			rootIdx = rightChildIdx; //rootIdx = rightIdx: items[1] now corresponds to 20, items[3] is 18.
 			  	}
 		  	}
-		  	else { //If order between the children and the parent is established, break out of the loop.
+		  	else {  //If order between the children and the parent is established, break out of the loop.
 		  		order = true;
 		  	}
 		}
+		numItems--; //Removing item we swapped into the root
 		return saveRm;
 	}
-
+	
+	/**
+	 * @return the number of items in the MinPQ heap.
+	 */
 	@Override
 	public int size() {
 		return numItems;
